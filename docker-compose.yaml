@@ -16,26 +16,27 @@ services:
       - lucy-redis
     networks:
       - lucy
+    platform: linux/amd64
     logging:
-        driver: "json-file"
-        options:
-          max-size: "200k"
-          max-file: "10"
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
 
   lucy-nginx:
-      image: nginx:mainline-alpine
-      container_name: lucy-nginx
-      restart: always
-      ports:
-        - "${APP_NGINX}:${APP_NGINX}"
-      volumes:
-        - ./control-panel:/var/www/html
-        - ./conf/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-      logging:
-        driver: "json-file"
-        options:
-          max-size: "200k"
-          max-file: "10"
+    image: nginx:mainline-alpine
+    container_name: lucy-nginx
+    restart: always
+    ports:
+      - "${APP_NGINX}:${APP_NGINX}"
+    volumes:
+      - ./control-panel:/var/www/html
+      - ./conf/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
 
   # lucy-firebase:
   #   image: golang:alpine
@@ -67,18 +68,18 @@ services:
     ports:
       - "27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - "MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}"
+      - "MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}"
     volumes:
       - ./volumes/rs1:/data/db
       - ./conf/mongo/mongo-keyfile:/etc/mongo-keyfile/mongo-keyfile:ro
     networks:
       - lucy
     logging:
-        driver: "json-file"
-        options:
-          max-size: "200k"
-          max-file: "10"
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
     healthcheck:
       test: ["CMD", "mongosh", "--username", "${MONGO_INITDB_ROOT_USERNAME}", "--password", "${MONGO_INITDB_ROOT_PASSWORD}", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -96,18 +97,18 @@ services:
     ports:
       - "27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - "MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}"
+      - "MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}"
     volumes:
       - ./volumes/rs2:/data/db
       - ./conf/mongo/mongo-keyfile:/etc/mongo-keyfile/mongo-keyfile:ro
     networks:
       - lucy
     logging:
-        driver: "json-file"
-        options:
-          max-size: "200k"
-          max-file: "10"
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
     healthcheck:
       test: ["CMD", "mongosh", "--username", "${MONGO_INITDB_ROOT_USERNAME}", "--password", "${MONGO_INITDB_ROOT_PASSWORD}", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -125,18 +126,18 @@ services:
     ports:
       - "27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - "MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}"
+      - "MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}"
     volumes:
       - ./volumes/rs3:/data/db
       - ./conf/mongo/mongo-keyfile:/etc/mongo-keyfile/mongo-keyfile:ro
     networks:
       - lucy
     logging:
-        driver: "json-file"
-        options:
-          max-size: "200k"
-          max-file: "10"
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
     healthcheck:
       test: ["CMD", "mongosh", "--username", "${MONGO_INITDB_ROOT_USERNAME}", "--password", "${MONGO_INITDB_ROOT_PASSWORD}", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -151,24 +152,24 @@ services:
       - ./conf/mongo:/tmp
       - ./conf/mongo/setup.sh:/tmp/setup.sh
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
-      - MONGO_REPLICA_SET=${MONGO_REPLICA_SET}
+      - "MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}"
+      - "MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}"
+      - "MONGO_REPLICA_SET=${MONGO_REPLICA_SET}"
     command: [ "sh", "/tmp/setup.sh" ]
     depends_on:
-      mongo1:
+      lucy-mongo1:
         condition: service_healthy
-      mongo2:
+      lucy-mongo2:
         condition: service_healthy
-      mongo3:
+      lucy-mongo3:
         condition: service_healthy
     networks:
       - lucy
     logging:
-        driver: "json-file"
-        options:
-          max-size: "200k"
-          max-file: "10"
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
 
   # REDIS
   lucy-redis:
@@ -182,10 +183,10 @@ services:
     networks:
       - lucy
     logging:
-        driver: "json-file"
-        options:
-          max-size: "200k"
-          max-file: "10"
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
 
 networks:
   lucy:
