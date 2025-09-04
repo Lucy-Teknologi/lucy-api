@@ -60,11 +60,18 @@ services:
     image: mongo:latest
     container_name: lucy-mongo1
     restart: always
-    command: mongod --replSet lucy-mongo
+    command: >
+      mongod --replSet ${MONGO_REPLICA_SET}
+        --keyFile /etc/mongo-keyfile/mongo-keyfile
+        --auth
     ports:
-      - "27017"
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - ./volumes/rs1:/data/db
+      - ./conf/mongo/mongo-keyfile:/etc/mongo-keyfile/mongo-keyfile:ro
     networks:
       - lucy
     logging:
@@ -77,11 +84,18 @@ services:
     image: mongo:latest
     container_name: lucy-mongo2
     restart: always
-    command: mongod --replSet lucy-mongo
+    command: >
+      mongod --replSet ${MONGO_REPLICA_SET}
+        --keyFile /etc/mongo-keyfile/mongo-keyfile
+        --auth
     ports:
-      - "27017"
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - ./volumes/rs2:/data/db
+      - ./conf/mongo/mongo-keyfile:/etc/mongo-keyfile/mongo-keyfile:ro
     networks:
       - lucy
     logging:
@@ -94,11 +108,18 @@ services:
     image: mongo:latest
     container_name: lucy-mongo3
     restart: always
-    command: mongod --replSet lucy-mongo
+    command: >
+      mongod --replSet ${MONGO_REPLICA_SET}
+        --keyFile /etc/mongo-keyfile/mongo-keyfile
+        --auth
     ports:
-      - "27017"
+      - "27019:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - ./volumes/rs3:/data/db
+      - ./conf/mongo/mongo-keyfile:/etc/mongo-keyfile/mongo-keyfile:ro
     networks:
       - lucy
     logging:
@@ -113,6 +134,10 @@ services:
     restart: "no"
     volumes:
       - ./conf/mongo:/tmp
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_REPLICA_SET=${MONGO_REPLICA_SET}
     command: [ "sh", "/tmp/setup.sh" ]
     depends_on:
       - lucy-mongo1
