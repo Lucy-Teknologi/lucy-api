@@ -6,10 +6,11 @@ set -e
 if [ ! -f ".env" ]; then
   echo "Creating .env file from .env.example..."
   cp .env.example .env
+  cp app/.env.example app/.env
 fi
 
 # Step 2: Ask user for replica set name
-read -p "Enter replica set name [default: mongo]: " REPLICA_NAME
+read -p "Enter replica set name [default: lucy-mongo]: " REPLICA_NAME
 if [ -z "$REPLICA_NAME" ]; then
   REPLICA_NAME="lucy-mongo"
 fi

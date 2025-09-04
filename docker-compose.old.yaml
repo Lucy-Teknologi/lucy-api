@@ -61,11 +61,18 @@ services:
     image: mongo:4.4
     container_name: lucy-mongo1
     restart: always
-    command: mongod --replSet lucy-mongo
+    command: >
+      mongod --replSet ${MONGO_REPLICA_SET}
+        --keyFile /etc/mongo-keyfile/mongo-keyfile
+        --auth
     ports:
-      - 27017
+      - "27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - ./volumes/rs1:/data/db
+      - ./conf/mongo/mongo-keyfile:/etc/mongo-keyfile/mongo-keyfile:ro
     networks:
       - lucy
     logging:
@@ -73,16 +80,28 @@ services:
         options:
           max-size: "200k"
           max-file: "10"
+    healthcheck:
+      test: ["CMD", "mongosh", "--username", "${MONGO_INITDB_ROOT_USERNAME}", "--password", "${MONGO_INITDB_ROOT_PASSWORD}", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   lucy-mongo2:
     image: mongo:4.4
     container_name: lucy-mongo2
     restart: always
-    command: mongod --replSet lucy-mongo
+    command: >
+      mongod --replSet ${MONGO_REPLICA_SET}
+        --keyFile /etc/mongo-keyfile/mongo-keyfile
+        --auth
     ports:
-      - 27017
+      - "27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - ./volumes/rs2:/data/db
+      - ./conf/mongo/mongo-keyfile:/etc/mongo-keyfile/mongo-keyfile:ro
     networks:
       - lucy
     logging:
@@ -90,16 +109,28 @@ services:
         options:
           max-size: "200k"
           max-file: "10"
+    healthcheck:
+      test: ["CMD", "mongosh", "--username", "${MONGO_INITDB_ROOT_USERNAME}", "--password", "${MONGO_INITDB_ROOT_PASSWORD}", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   lucy-mongo3:
     image: mongo:4.4
     container_name: lucy-mongo3
     restart: always
-    command: mongod --replSet lucy-mongo
+    command: >
+      mongod --replSet ${MONGO_REPLICA_SET}
+        --keyFile /etc/mongo-keyfile/mongo-keyfile
+        --auth
     ports:
-      - 27017
+      - "27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - ./volumes/rs3:/data/db
+      - ./conf/mongo/mongo-keyfile:/etc/mongo-keyfile/mongo-keyfile:ro
     networks:
       - lucy
     logging:
@@ -107,13 +138,23 @@ services:
         options:
           max-size: "200k"
           max-file: "10"
+    healthcheck:
+      test: ["CMD", "mongosh", "--username", "${MONGO_INITDB_ROOT_USERNAME}", "--password", "${MONGO_INITDB_ROOT_PASSWORD}", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   lucy-mongo-init:
     image: mongo:4.4
     container_name: lucy-mongo-init
     restart: "no"
     volumes:
-      - ./conf/mongo/old-setup.sh:/tmp/setup.sh
+      - ./conf/mongo:/tmp
+      - ./conf/mongo/setup.sh:/tmp/setup.sh
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_REPLICA_SET=${MONGO_REPLICA_SET}
     command: [ "sh", "/tmp/setup.sh" ]
     depends_on:
       - lucy-mongo1
