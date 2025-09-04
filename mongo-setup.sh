@@ -34,7 +34,7 @@ if [[ "$GEN_KEYFILE" =~ ^[Yy]$ ]]; then
   if [ ! -f "conf/mongo/mongo-keyfile" ]; then
     echo "Generating mongo-keyfile..."
     openssl rand -base64 741 > conf/mongo/mongo-keyfile
-    chown 999:999 conf/mongo/mongo-keyfile
+    # chown 999:999 conf/mongo/mongo-keyfile
     chmod 400 conf/mongo/mongo-keyfile
     echo "mongo-keyfile generated at conf/mongo/mongo-keyfile"
   else
