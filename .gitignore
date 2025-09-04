@@ -52,3 +52,4 @@ go.work*
 app/cmd/
 
 lucy-control-panel/
+*keyfile
