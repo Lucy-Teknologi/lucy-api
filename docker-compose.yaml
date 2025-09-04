@@ -1,7 +1,7 @@
 services:
   # APP
   lucy-app:
-    build: 
+    build:
       context: ./app
       dockerfile: ../lucy-app.dockerfile
     image: lucy-app:latest
@@ -28,7 +28,7 @@ services:
       restart: always
       ports:
         - "${APP_NGINX}:${APP_NGINX}"
-      volumes: 
+      volumes:
         - ./control-panel:/var/www/html
         - ./conf/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
       logging:
@@ -156,9 +156,12 @@ services:
       - MONGO_REPLICA_SET=${MONGO_REPLICA_SET}
     command: [ "sh", "/tmp/setup.sh" ]
     depends_on:
-      - lucy-mongo1
-      - lucy-mongo2
-      - lucy-mongo3
+      mongo1:
+        condition: service_healthy
+      mongo2:
+        condition: service_healthy
+      mongo3:
+        condition: service_healthy
     networks:
       - lucy
     logging:
