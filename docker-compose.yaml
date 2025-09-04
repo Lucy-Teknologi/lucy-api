@@ -1,7 +1,7 @@
 services:
   # APP
   lucy-app:
-    build: 
+    build:
       context: ./app
       dockerfile: ../lucy-app.dockerfile
     image: lucy-app:latest
@@ -28,7 +28,7 @@ services:
       restart: always
       ports:
         - "${APP_NGINX}:${APP_NGINX}"
-      volumes: 
+      volumes:
         - ./control-panel:/var/www/html
         - ./conf/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
       logging:
@@ -65,7 +65,7 @@ services:
         --keyFile /etc/mongo-keyfile/mongo-keyfile
         --auth
     ports:
-      - "27017:27017"
+      - "27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
@@ -79,6 +79,11 @@ services:
         options:
           max-size: "200k"
           max-file: "10"
+    healthcheck:
+      test: ["CMD", "mongosh", "--username", "${MONGO_INITDB_ROOT_USERNAME}", "--password", "${MONGO_INITDB_ROOT_PASSWORD}", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   lucy-mongo2:
     image: mongo:latest
@@ -89,7 +94,7 @@ services:
         --keyFile /etc/mongo-keyfile/mongo-keyfile
         --auth
     ports:
-      - "27018:27017"
+      - "27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
@@ -103,6 +108,11 @@ services:
         options:
           max-size: "200k"
           max-file: "10"
+    healthcheck:
+      test: ["CMD", "mongosh", "--username", "${MONGO_INITDB_ROOT_USERNAME}", "--password", "${MONGO_INITDB_ROOT_PASSWORD}", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   lucy-mongo3:
     image: mongo:latest
@@ -113,7 +123,7 @@ services:
         --keyFile /etc/mongo-keyfile/mongo-keyfile
         --auth
     ports:
-      - "27019:27017"
+      - "27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
@@ -127,6 +137,11 @@ services:
         options:
           max-size: "200k"
           max-file: "10"
+    healthcheck:
+      test: ["CMD", "mongosh", "--username", "${MONGO_INITDB_ROOT_USERNAME}", "--password", "${MONGO_INITDB_ROOT_PASSWORD}", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   lucy-mongo-init:
     image: mongo:latest
@@ -134,15 +149,19 @@ services:
     restart: "no"
     volumes:
       - ./conf/mongo:/tmp
+      - ./conf/mongo/setup.sh:/tmp/setup.sh
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
       - MONGO_REPLICA_SET=${MONGO_REPLICA_SET}
     command: [ "sh", "/tmp/setup.sh" ]
     depends_on:
-      - lucy-mongo1
-      - lucy-mongo2
-      - lucy-mongo3
+      mongo1:
+        condition: service_healthy
+      mongo2:
+        condition: service_healthy
+      mongo3:
+        condition: service_healthy
     networks:
       - lucy
     logging:
