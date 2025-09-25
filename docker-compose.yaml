@@ -63,7 +63,7 @@ services:
     restart: always
     command: >
       mongod --replSet ${MONGO_REPLICA_SET}
-        --keyFile /etc/mongo-keyfile/mongo-keyfile:ro
+        --keyFile /etc/mongo-keyfil
         --auth
     ports:
       - "27017"
@@ -72,7 +72,7 @@ services:
       - "MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}"
     volumes:
       - ./volumes/rs1:/data/db
-      - ./conf/mongo/mongo-keyfile:/etc/mongo-keyfile/mongo-keyfile:ro
+      - ./conf/mongo/mongo-keyfile:/etc/mongo-keyfil
     networks:
       - lucy
     logging:
@@ -92,7 +92,7 @@ services:
     restart: always
     command: >
       mongod --replSet ${MONGO_REPLICA_SET}
-        --keyFile /etc/mongo-keyfile/mongo-keyfile:ro
+        --keyFile /etc/mongo-keyfil
         --auth
     ports:
       - "27017"
@@ -101,7 +101,7 @@ services:
       - "MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}"
     volumes:
       - ./volumes/rs2:/data/db
-      - ./conf/mongo/mongo-keyfile:/etc/mongo-keyfile/mongo-keyfile:ro
+      - ./conf/mongo/mongo-keyfile:/etc/mongo-keyfil
     networks:
       - lucy
     logging:
@@ -121,7 +121,7 @@ services:
     restart: always
     command: >
       mongod --replSet ${MONGO_REPLICA_SET}
-        --keyFile /etc/mongo-keyfile/mongo-keyfile:ro
+        --keyFile /etc/mongo-keyfil
         --auth
     ports:
       - "27017"
@@ -130,7 +130,7 @@ services:
       - "MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}"
     volumes:
       - ./volumes/rs3:/data/db
-      - ./conf/mongo/mongo-keyfile:/etc/mongo-keyfile/mongo-keyfile:ro
+      - ./conf/mongo/mongo-keyfile:/etc/mongo-keyfil
     networks:
       - lucy
     logging:
