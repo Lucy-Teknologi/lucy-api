@@ -63,7 +63,7 @@ services:
     restart: always
     command: >
       mongod --replSet ${MONGO_REPLICA_SET}
-        --keyFile /etc/mongo-keyfile/mongo-keyfile
+        --keyFile /etc/mongo-keyfile/mongo-keyfile:ro
         --auth
     ports:
       - "27017"
@@ -92,7 +92,7 @@ services:
     restart: always
     command: >
       mongod --replSet ${MONGO_REPLICA_SET}
-        --keyFile /etc/mongo-keyfile/mongo-keyfile
+        --keyFile /etc/mongo-keyfile/mongo-keyfile:ro
         --auth
     ports:
       - "27017"
@@ -121,7 +121,7 @@ services:
     restart: always
     command: >
       mongod --replSet ${MONGO_REPLICA_SET}
-        --keyFile /etc/mongo-keyfile/mongo-keyfile
+        --keyFile /etc/mongo-keyfile/mongo-keyfile:ro
         --auth
     ports:
       - "27017"
