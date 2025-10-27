@@ -152,9 +152,9 @@ services:
       - ./conf/mongo:/tmp
       - ./conf/mongo/old-setup.sh:/tmp/setup.sh
     environment:
-      - MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
-      - MONGO_REPLICA_SET: ${MONGO_REPLICA_SET}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_REPLICA_SET: ${MONGO_REPLICA_SET}
     command: [ "sh", "/tmp/setup.sh" ]
     depends_on:
       - lucy-mongo1
