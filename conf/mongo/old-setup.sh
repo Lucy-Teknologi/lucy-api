@@ -1,6 +1,4 @@
 #!/bin/bash
-set -euo pipefail
-
 # Optional delay to ensure mongod is ready
 sleep 5
 
