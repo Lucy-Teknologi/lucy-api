@@ -1,7 +1,7 @@
 #!/bin/bash
 sleep 5
 
-mongosh --host lucy-mongo1 \
+mongo --host lucy-mongo1 \
   --username "${MONGO_INITDB_ROOT_USERNAME}" \
   --password "${MONGO_INITDB_ROOT_PASSWORD}" \
   --authenticationDatabase "admin" <<'EOF'
