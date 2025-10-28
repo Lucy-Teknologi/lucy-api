@@ -7,8 +7,6 @@ services:
     image: lucy-app:latest
     container_name: lucy-app
     restart: always
-    ports:
-      - "${APP_PORT}:${APP_PORT}"
     volumes:
       - ./app:/go/src/app
     depends_on:
@@ -29,9 +27,12 @@ services:
     restart: always
     ports:
       - "${APP_NGINX}:${APP_NGINX}"
+      - "${APP_PORT}:${APP_PORT}"
     volumes:
       - ./control-panel:/var/www/html
       - ./conf/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - lucy
     logging:
       driver: "json-file"
       options:
