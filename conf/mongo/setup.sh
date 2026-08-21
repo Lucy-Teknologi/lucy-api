@@ -1,46 +1,33 @@
-#!/bin/bash
-sleep 5
+#!/bin/env sh
+set -e
 
-mongosh --host lucy-mongo1 \
-  --username "${MONGO_INITDB_ROOT_USERNAME}" \
-  --password "${MONGO_INITDB_ROOT_PASSWORD}" \
-  --authenticationDatabase "admin" <<'EOF'
-const rsName = process.env.MONGO_REPLICA_SET;
-const cfg = {
-  _id: rsName,
-  version: 1,
-  members: [
-    { _id: 1, host: "lucy-mongo1:27017", priority: 3 },
-    { _id: 2, host: "lucy-mongo2:27017", priority: 2 },
-    { _id: 3, host: "lucy-mongo3:27017", priority: 1 },
-  ],
-};
+echo "Waiting for lucy-mongo1 to completely initialize..."
 
-function alreadyInit() {
-  try { const s = rs.status(); return !!s.set; } catch (_) { return false; }
-}
+# A robust loop that actively tests authentication/ping capabilities before executing commands
+until mongosh --host lucy-mongo1:27017 --eval "db.runCommand({ping:1})" &>/dev/null; do
+  echo "MongoDB is booting up... sleeping 2s"
+  sleep 2
+done
 
-if (alreadyInit()) {
-  print("Replica set already initialized. Name:", rs.status().set);
-} else {
-  print("Initializing replica set:", rsName);
-  try { rs.initiate(cfg); } 
-  catch (e) {
-    if ((e.codeName === "AlreadyInitialized") || /already initialized/i.test(e.message)) {
-      print("Replica set was already initialized.");
-    } else {
-      throw e;
-    }
-  }
-}
+echo "lucy-mongo1 is ready! Attempting replica set initialization..."
 
-// wait until node is primary/secondary
-for (let i = 0; i < 30; i++) {
-  const isMaster = db.isMaster();
-  if (isMaster.ismaster || isMaster.secondary) { 
-    print("Node is now", isMaster.ismaster ? "PRIMARY" : "SECONDARY"); 
-    break; 
-  }
-  sleep(1000);
-}
-EOF
+# Wrap the rs.initiate in a retry loop in case the JS engine rejects the first flight
+for i in {1..5}; do
+  mongosh --host lucy-mongo1:27017 \
+  -u "${MONGO_INITDB_ROOT_USERNAME}" \
+  -p "${MONGO_INITDB_ROOT_PASSWORD}" \
+  --authenticationDatabase admin \
+  --eval "
+    rs.initiate({
+      _id: '${MONGO_REPLICA_SET}',
+      members: [
+        { _id: 0, host: 'lucy-mongo1:27017' },
+        { _id: 1, host: 'lucy-mongo2:27017' },
+        { _id: 2, host: 'lucy-mongo3:27017' }
+      ]
+    })
+  " && break || echo "Replica set setup failed, retrying in 3 seconds... ($i/5)"
+  sleep 3
+done
+
+echo "Replica set configuration completed successfully!"
