@@ -1,3 +1,31 @@
+x-mongo-common: &mongo-common
+  image: mongo:7.0
+  restart: always
+  command: >
+    bash -c "
+      mkdir -p /data/configdb &&
+      cp /tmp/mongo-config/mongo-keyfile /data/configdb/mongo-keyfile &&
+      chmod 400 /data/configdb/mongo-keyfile &&
+      chown 999:999 /data/configdb/mongo-keyfile &&
+      exec mongod --replSet ${MONGO_REPLICA_SET} --keyFile /data/configdb/mongo-keyfile --auth --bind_ip_all
+    "
+  environment:
+    MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+    MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+  networks:
+    - lucy
+  logging:
+    driver: json-file
+    options:
+      max-size: "200k"
+      max-file: "10"
+  healthcheck:
+    test: ["CMD-SHELL", "mongosh --port 27017 --eval 'db.runCommand({ping:1})' || exit 1"]
+    interval: 5s
+    timeout: 5s
+    retries: 5
+    start_period: 10s
+
 services:
   # APP
   lucy-app:
@@ -39,124 +67,40 @@ services:
         max-size: "200k"
         max-file: "10"
 
-  # lucy-firebase:
-  #   image: golang:alpine
-  #   container_name: lucy-firebase
-  #   restart: always
-  #   # ports:
-  #   #   - "${FIREBASE_PORT}:${FIREBASE_PORT}"
-  #   volumes:
-  #     - ./firebase:/go/src/firebase
-  #     - ./domain:/go/src/domain
-  #   working_dir: /go/src/firebase
-  #   command: go run --tags=jsoniter main.go
-  #   depends_on:
-  #     - lucy-mongo-init
-  #     - lucy-redis
-  #     - lucy-api
-  #   networks:
-  #     - lucy
-
-  # MONGO
   lucy-mongo1:
-    image: mongo:latest
-    container_name: lucy-mongo1
-    restart: always
-    command: >
-      mongod --replSet ${MONGO_REPLICA_SET}
-        --keyFile /etc/mongo-keyfile
-        --auth
+    <<: *mongo-common
     ports:
-      - "27017"
-    environment:
-      - "MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}"
-      - "MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}"
+      - 27017:27017
+    container_name: lucy-mongo1
     volumes:
       - ./volumes/rs1:/data/db
-      - ./conf/mongo/mongo-keyfile:/etc/mongo-keyfile
-    networks:
-      - lucy
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "200k"
-        max-file: "10"
-    healthcheck:
-      test: ["CMD", "mongosh", "--username", "${MONGO_INITDB_ROOT_USERNAME}", "--password", "${MONGO_INITDB_ROOT_PASSWORD}", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - ./conf/mongo:/tmp/mongo-config:ro
 
   lucy-mongo2:
-    image: mongo:latest
+    <<: *mongo-common
     container_name: lucy-mongo2
-    restart: always
-    command: >
-      mongod --replSet ${MONGO_REPLICA_SET}
-        --keyFile /etc/mongo-keyfile
-        --auth
-    ports:
-      - "27017"
-    environment:
-      - "MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}"
-      - "MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}"
     volumes:
       - ./volumes/rs2:/data/db
-      - ./conf/mongo/mongo-keyfile:/etc/mongo-keyfile
-    networks:
-      - lucy
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "200k"
-        max-file: "10"
-    healthcheck:
-      test: ["CMD", "mongosh", "--username", "${MONGO_INITDB_ROOT_USERNAME}", "--password", "${MONGO_INITDB_ROOT_PASSWORD}", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - ./conf/mongo:/tmp/mongo-config:ro
 
   lucy-mongo3:
-    image: mongo:latest
+    <<: *mongo-common
     container_name: lucy-mongo3
-    restart: always
-    command: >
-      mongod --replSet ${MONGO_REPLICA_SET}
-        --keyFile /etc/mongo-keyfile
-        --auth
-    ports:
-      - "27017"
-    environment:
-      - "MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}"
-      - "MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}"
     volumes:
       - ./volumes/rs3:/data/db
-      - ./conf/mongo/mongo-keyfile:/etc/mongo-keyfile
-    networks:
-      - lucy
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "200k"
-        max-file: "10"
-    healthcheck:
-      test: ["CMD", "mongosh", "--username", "${MONGO_INITDB_ROOT_USERNAME}", "--password", "${MONGO_INITDB_ROOT_PASSWORD}", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - ./conf/mongo:/tmp/mongo-config:ro
 
   lucy-mongo-init:
-    image: mongo:latest
+    image: mongo:7.0
     container_name: lucy-mongo-init
     restart: "no"
-    volumes:
-      - ./conf/mongo:/tmp
-      - ./conf/mongo/setup.sh:/tmp/setup.sh
     environment:
-      - "MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}"
-      - "MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}"
-      - "MONGO_REPLICA_SET=${MONGO_REPLICA_SET}"
-    command: [ "sh", "/tmp/setup.sh" ]
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_REPLICA_SET: ${MONGO_REPLICA_SET}
+    volumes:
+      - ./conf/mongo/setup.sh:/tmp/setup.sh:ro
+    command: ["sh", "/tmp/setup.sh"]
     depends_on:
       lucy-mongo1:
         condition: service_healthy
@@ -167,7 +111,7 @@ services:
     networks:
       - lucy
     logging:
-      driver: "json-file"
+      driver: json-file
       options:
         max-size: "200k"
         max-file: "10"
