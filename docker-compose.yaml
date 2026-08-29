@@ -1,14 +1,16 @@
 x-mongo-common: &mongo-common
-  image: mongo:7.0
+  build:
+    context: .
+    dockerfile: ./mongo.dockerfile
   restart: always
-  command: >
-    bash -c "
-      mkdir -p /data/configdb &&
-      cp /tmp/mongo-config/mongo-keyfile /data/configdb/mongo-keyfile &&
-      chmod 400 /data/configdb/mongo-keyfile &&
-      chown 999:999 /data/configdb/mongo-keyfile &&
-      exec mongod --replSet ${MONGO_REPLICA_SET} --keyFile /data/configdb/mongo-keyfile --auth --bind_ip_all
-    "
+  command:
+    - mongod
+    - --replSet
+    - ${MONGO_REPLICA_SET}
+    - --keyFile
+    - /data/configdb/mongo-keyfile
+    - --auth
+    - --bind_ip_all
   environment:
     MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
     MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
@@ -20,10 +22,14 @@ x-mongo-common: &mongo-common
       max-size: "200k"
       max-file: "10"
   healthcheck:
-    test: ["CMD-SHELL", "mongosh --port 27017 --eval 'db.runCommand({ping:1})' || exit 1"]
+    test:
+      [
+        "CMD-SHELL",
+        "mongosh --quiet --eval 'db.runCommand({ping:1}).ok' | grep 1"
+      ]
     interval: 5s
     timeout: 5s
-    retries: 5
+    retries: 10
     start_period: 10s
 
 services:
