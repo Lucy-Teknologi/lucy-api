@@ -83,21 +83,21 @@ services:
     container_name: lucy-mongo1
     volumes:
       - ./volumes/rs1:/data/db
-      - ./conf/mongo:/tmp/mongo-config:ro
+      - ./conf/mongo/mongo-keyfile:/data/configdb/mongo-keyfile:ro
 
   lucy-mongo2:
     <<: *mongo-common
     container_name: lucy-mongo2
     volumes:
       - ./volumes/rs2:/data/db
-      - ./conf/mongo:/tmp/mongo-config:ro
+      - ./conf/mongo/mongo-keyfile:/data/configdb/mongo-keyfile:ro
 
   lucy-mongo3:
     <<: *mongo-common
     container_name: lucy-mongo3
     volumes:
       - ./volumes/rs3:/data/db
-      - ./conf/mongo:/tmp/mongo-config:ro
+      - ./conf/mongo/mongo-keyfile:/data/configdb/mongo-keyfile:ro
 
   lucy-mongo-init:
     image: mongo:7.0
