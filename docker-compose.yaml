@@ -130,8 +130,9 @@ services:
     image: redis:7-alpine
     container_name: lucy-redis
     restart: always
+    command: redis-server --appendonly yes --appendfsync everysec --aof-use-rdb-preamble yes
     ports:
-      - 6379
+      - "6379:6379"
     volumes:
       - ./volumes/redis:/data
     networks:
