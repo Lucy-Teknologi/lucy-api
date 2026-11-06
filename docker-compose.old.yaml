@@ -178,9 +178,22 @@ services:
     image: redis:7-alpine
     container_name: lucy-redis
     restart: always
-    ports:
-      - 6379
+    privileged: false
+    user: "999:999"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD}
+    env_file:
+      - .env
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    # To inspect Redis locally on the host, explicitly bind to loopback only:
+    # ports:
+    #   - "127.0.0.1:6379:6379"
     volumes:
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
       - ./volumes/redis:/data
     networks:
       - lucy
